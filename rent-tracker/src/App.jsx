@@ -13,11 +13,101 @@ import { PaymentsProvider } from './contexts/PaymentsContext';
 
 const theme = createTheme({
   palette: {
+    mode: 'light',
     primary: {
-      main: '#1976d2',
+      main: '#2563eb',
+      light: '#60a5fa',
+      dark: '#1e40af',
+      contrastText: '#ffffff',
     },
     secondary: {
-      main: '#dc004e',
+      main: '#7c3aed',
+      light: '#a78bfa',
+      dark: '#5b21b6',
+      contrastText: '#ffffff',
+    },
+    background: {
+      default: '#f8fafc',
+      paper: '#ffffff',
+    },
+    success: {
+      main: '#059669',
+      light: '#34d399',
+      dark: '#065f46',
+    },
+    warning: {
+      main: '#d97706',
+      light: '#fbbf24',
+      dark: '#92400e',
+    },
+    text: {
+      primary: '#1e293b',
+      secondary: '#64748b',
+    },
+  },
+  typography: {
+    fontFamily: '"Inter", "Helvetica", "Arial", sans-serif',
+    h1: {
+      fontWeight: 600,
+    },
+    h2: {
+      fontWeight: 600,
+    },
+    h3: {
+      fontWeight: 600,
+    },
+    h4: {
+      fontWeight: 600,
+    },
+    h5: {
+      fontWeight: 600,
+    },
+    h6: {
+      fontWeight: 600,
+    },
+  },
+  shape: {
+    borderRadius: 8,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          fontWeight: 500,
+          padding: '8px 16px',
+        },
+        contained: {
+          boxShadow: 'none',
+          '&:hover': {
+            boxShadow: 'none',
+          },
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+          border: '1px solid rgba(0, 0, 0, 0.05)',
+        },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        head: {
+          fontWeight: 600,
+          backgroundColor: '#f8fafc',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+          border: '1px solid rgba(0, 0, 0, 0.05)',
+        },
+      },
     },
   },
 });

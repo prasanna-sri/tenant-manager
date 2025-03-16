@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
   Box,
@@ -11,19 +11,25 @@ import {
   ListItemText,
   Toolbar,
   Typography,
+  Avatar,
+  Divider,
+  useTheme,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
   People as PeopleIcon,
   Payment as PaymentIcon,
+  Home as HomeIcon,
 } from '@mui/icons-material';
 
-const drawerWidth = 240;
+const drawerWidth = 280;
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const theme = useTheme();
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
@@ -33,43 +39,99 @@ export default function Layout() {
 
   const drawer = (
     <div>
-      <Toolbar />
-      <List>
-        {menuItems.map((item) => (
-          <ListItem
-            button
-            key={item.text}
-            onClick={() => {
-              navigate(item.path);
-              setMobileOpen(false);
-            }}
-          >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
-          </ListItem>
-        ))}
+      <Box 
+        sx={{ 
+          p: 2, 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 2,
+          backgroundColor: theme.palette.primary.main,
+          color: 'white',
+          minHeight: 64,
+        }}
+      >
+        <HomeIcon sx={{ fontSize: 32 }} />
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          Rent Tracker
+        </Typography>
+      </Box>
+      <Divider />
+      <List sx={{ p: 2 }}>
+        {menuItems.map((item) => {
+          const isActive = location.pathname === item.path || 
+            (item.path !== '/' && location.pathname.startsWith(item.path));
+          
+          return (
+            <ListItem
+              button
+              key={item.text}
+              onClick={() => {
+                navigate(item.path);
+                setMobileOpen(false);
+              }}
+              sx={{
+                borderRadius: 1,
+                mb: 1,
+                backgroundColor: isActive ? theme.palette.primary.light : 'transparent',
+                color: isActive ? theme.palette.primary.contrastText : theme.palette.text.primary,
+                '&:hover': {
+                  backgroundColor: isActive 
+                    ? theme.palette.primary.light 
+                    : theme.palette.action.hover,
+                },
+              }}
+            >
+              <ListItemIcon sx={{ 
+                color: isActive ? theme.palette.primary.contrastText : theme.palette.primary.main,
+                minWidth: 40,
+              }}>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText 
+                primary={item.text} 
+                primaryTypographyProps={{
+                  fontWeight: isActive ? 600 : 400,
+                }}
+              />
+            </ListItem>
+          );
+        })}
       </List>
     </div>
   );
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: theme.palette.background.default }}>
       <AppBar
         position="fixed"
-        sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        elevation={0}
+        sx={{ 
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: 'white',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+        }}
       >
         <Toolbar>
           <IconButton
-            color="inherit"
+            color="primary"
             edge="start"
             onClick={() => setMobileOpen(!mobileOpen)}
             sx={{ mr: 2, display: { sm: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            Rent Tracker
-          </Typography>
+          <Box sx={{ flexGrow: 1 }} />
+          <Avatar 
+            sx={{ 
+              width: 32, 
+              height: 32,
+              bgcolor: theme.palette.primary.main,
+              cursor: 'pointer',
+            }}
+          >
+            A
+          </Avatar>
         </Toolbar>
       </AppBar>
       <Box
@@ -88,6 +150,7 @@ export default function Layout() {
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
               width: drawerWidth,
+              borderRight: 'none',
             },
           }}
         >
@@ -100,6 +163,8 @@ export default function Layout() {
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
               width: drawerWidth,
+              borderRight: 'none',
+              boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
             },
           }}
           open
@@ -111,7 +176,7 @@ export default function Layout() {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: 4,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
         }}
       >

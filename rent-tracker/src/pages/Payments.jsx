@@ -1,6 +1,15 @@
 import { useState, useContext } from 'react';
 import {
-  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
   Paper,
   Table,
   TableBody,
@@ -9,152 +18,158 @@ import {
   TableHead,
   TableRow,
   Typography,
-  Button,
-  TextField,
-  MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
+  Box,
+  useTheme,
+  Chip,
+  IconButton,
 } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import {
+  Add as AddIcon,
+  Check as CheckIcon,
+  Close as CloseIcon,
+} from '@mui/icons-material';
 import { TenantsContext } from './Tenants';
 import { PaymentsContext } from '../contexts/PaymentsContext';
 
 export default function Payments() {
+  const theme = useTheme();
   const { tenants } = useContext(TenantsContext);
   const { payments, addPayment, updatePaymentStatus } = useContext(PaymentsContext);
-  const [filterMonth, setFilterMonth] = useState('');
-  const [openDialog, setOpenDialog] = useState(false);
+  const [open, setOpen] = useState(false);
   const [newPayment, setNewPayment] = useState({
     tenantId: '',
     amount: '',
-    date: null,
+    date: new Date(),
   });
 
   const handleAddPayment = () => {
     if (!newPayment.tenantId || !newPayment.amount || !newPayment.date) {
       return;
     }
-
-    const selectedTenant = tenants.find(t => t.id === newPayment.tenantId);
-    if (!selectedTenant) return;
-    
     addPayment({
       ...newPayment,
       amount: Number(newPayment.amount),
       status: 'Pending',
       date: newPayment.date.toISOString().split('T')[0],
     });
-    
+    setOpen(false);
     setNewPayment({
       tenantId: '',
       amount: '',
-      date: null,
+      date: new Date(),
     });
-    setOpenDialog(false);
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
   const getTenantName = (tenantId) => {
-    const tenant = tenants.find(t => t.id === tenantId);
-    return tenant ? tenant.name : 'Unknown';
+    const tenant = tenants.find((t) => t.id === tenantId);
+    return tenant ? tenant.name : 'Unknown Tenant';
   };
-
-  const getTenantUnit = (tenantId) => {
-    const tenant = tenants.find(t => t.id === tenantId);
-    return tenant ? tenant.unit : 'Unknown';
-  };
-
-  const months = [
-    'January', 'February', 'March', 'April',
-    'May', 'June', 'July', 'August',
-    'September', 'October', 'November', 'December'
-  ];
-
-  const filteredPayments = payments.filter(payment => {
-    if (!filterMonth) return true;
-    const paymentDate = new Date(payment.date);
-    return months[paymentDate.getMonth()] === filterMonth;
-  });
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Payments</Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <TextField
-            select
-            label="Filter by Month"
-            value={filterMonth}
-            onChange={(e) => setFilterMonth(e.target.value)}
-            sx={{ width: 200 }}
-          >
-            <MenuItem value="">All Months</MenuItem>
-            {months.map((month) => (
-              <MenuItem key={month} value={month}>
-                {month}
-              </MenuItem>
-            ))}
-          </TextField>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              setNewPayment({
-                tenantId: '',
-                amount: '',
-                date: new Date(),
-              });
-              setOpenDialog(true);
-            }}
-          >
-            Record Payment
-          </Button>
+    <div>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        mb: 4 
+      }}>
+        <Box>
+          <Typography variant="h4" gutterBottom fontWeight="600">
+            Payments
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Track and manage rental payments
+          </Typography>
         </Box>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={() => setOpen(true)}
+          sx={{
+            px: 3,
+            py: 1,
+            borderRadius: 2,
+            textTransform: 'none',
+            fontSize: '1rem',
+          }}
+        >
+          Record Payment
+        </Button>
       </Box>
 
-      <TableContainer component={Paper}>
+      <TableContainer 
+        component={Paper}
+        sx={{ 
+          borderRadius: 2,
+          overflow: 'hidden',
+          '& .MuiTableRow-root:hover': {
+            backgroundColor: theme.palette.action.hover,
+          },
+        }}
+      >
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Tenant</TableCell>
-              <TableCell>Unit</TableCell>
-              <TableCell>Date</TableCell>
-              <TableCell align="right">Amount</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Actions</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Tenant</TableCell>
+              <TableCell sx={{ fontWeight: 600 }} align="right">Amount</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Due Date</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: 600 }} align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredPayments.map((payment) => (
+            {payments.map((payment) => (
               <TableRow key={payment.id}>
-                <TableCell>{getTenantName(payment.tenantId)}</TableCell>
-                <TableCell>{getTenantUnit(payment.tenantId)}</TableCell>
-                <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
-                <TableCell align="right">${payment.amount.toLocaleString()}</TableCell>
                 <TableCell>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    color={payment.status === 'Paid' ? 'success' : 'warning'}
-                    sx={{ minWidth: 100 }}
-                  >
-                    {payment.status}
-                  </Button>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+                    {getTenantName(payment.tenantId)}
+                  </Typography>
+                </TableCell>
+                <TableCell align="right">
+                  <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+                    ${payment.amount.toLocaleString()}
+                  </Typography>
                 </TableCell>
                 <TableCell>
+                  <Typography variant="body2" color="text.secondary">
+                    {formatDate(payment.date)}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={payment.status}
+                    color={payment.status === 'Paid' ? 'success' : 'warning'}
+                    size="small"
+                    sx={{ fontWeight: 500 }}
+                  />
+                </TableCell>
+                <TableCell align="right">
                   {payment.status === 'Pending' && (
-                    <Button
-                      variant="outlined"
-                      size="small"
+                    <IconButton
                       color="success"
                       onClick={() => updatePaymentStatus(payment.id, 'Paid')}
+                      size="small"
+                      sx={{ 
+                        backgroundColor: `${theme.palette.success.main}15`,
+                        '&:hover': {
+                          backgroundColor: `${theme.palette.success.main}25`,
+                        },
+                      }}
                     >
-                      Mark as Paid
-                    </Button>
+                      <CheckIcon />
+                    </IconButton>
                   )}
                 </TableCell>
               </TableRow>
@@ -163,61 +178,92 @@ export default function Payments() {
         </Table>
       </TableContainer>
 
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Record New Payment</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-            <FormControl fullWidth>
-              <InputLabel>Tenant</InputLabel>
-              <Select
-                value={newPayment.tenantId}
-                label="Tenant"
-                onChange={(e) => {
-                  const tenant = tenants.find(t => t.id === e.target.value);
-                  setNewPayment(prev => ({
-                    ...prev,
-                    tenantId: e.target.value,
-                    amount: tenant ? tenant.rentAmount : '',
-                  }));
-                }}
-              >
-                {tenants.map((tenant) => (
-                  <MenuItem key={tenant.id} value={tenant.id}>
-                    {tenant.name} - {tenant.unit} (${tenant.rentAmount})
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField
-              label="Amount"
-              type="number"
-              value={newPayment.amount}
-              onChange={(e) => setNewPayment(prev => ({ ...prev, amount: e.target.value }))}
-              InputProps={{
-                startAdornment: '$',
+      <Dialog 
+        open={open} 
+        onClose={() => setOpen(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            minWidth: 400,
+          },
+        }}
+      >
+        <DialogTitle>
+          <Typography variant="h6" fontWeight="600">
+            Record New Payment
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ pt: '20px !important' }}>
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel id="tenant-select-label">Tenant</InputLabel>
+            <Select
+              labelId="tenant-select-label"
+              value={newPayment.tenantId}
+              label="Tenant"
+              onChange={(e) => {
+                const tenant = tenants.find((t) => t.id === e.target.value);
+                setNewPayment({
+                  ...newPayment,
+                  tenantId: e.target.value,
+                  amount: tenant ? tenant.rentAmount : '',
+                });
               }}
-              required
-            />
+            >
+              {tenants.map((tenant) => (
+                <MenuItem key={tenant.id} value={tenant.id}>
+                  {tenant.name} - Unit {tenant.unit}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            fullWidth
+            label="Amount"
+            type="number"
+            value={newPayment.amount}
+            onChange={(e) =>
+              setNewPayment({ ...newPayment, amount: e.target.value })
+            }
+            sx={{ mb: 2 }}
+          />
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
             <DatePicker
-              label="Payment Date"
+              label="Due Date"
               value={newPayment.date}
-              onChange={(newValue) => setNewPayment(prev => ({ ...prev, date: newValue }))}
-              slotProps={{ textField: { fullWidth: true, required: true } }}
+              onChange={(newDate) =>
+                setNewPayment({ ...newPayment, date: newDate })
+              }
+              renderInput={(params) => <TextField {...params} fullWidth />}
             />
-          </Box>
+          </LocalizationProvider>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
           <Button 
-            onClick={handleAddPayment} 
-            variant="contained" 
-            color="primary"
-            disabled={!newPayment.tenantId || !newPayment.amount || !newPayment.date}
+            onClick={() => setOpen(false)}
+            startIcon={<CloseIcon />}
+            sx={{ 
+              color: theme.palette.text.secondary,
+              '&:hover': {
+                backgroundColor: theme.palette.action.hover,
+              },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleAddPayment}
+            startIcon={<AddIcon />}
+            sx={{
+              px: 3,
+              borderRadius: 1,
+              textTransform: 'none',
+            }}
           >
             Add Payment
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </div>
   );
 }
