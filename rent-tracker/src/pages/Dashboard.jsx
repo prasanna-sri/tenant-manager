@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import {
   Grid,
   Paper,
@@ -8,23 +8,17 @@ import {
   Button,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { TenantsContext } from './Tenants';
+import { PaymentsContext } from '../contexts/PaymentsContext';
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({
-    totalTenants: 0,
-    pendingPayments: 0,
-    totalRevenue: 0,
-  });
   const navigate = useNavigate();
+  const { tenants } = useContext(TenantsContext);
+  const { getTotalRevenue, getPendingPayments } = useContext(PaymentsContext);
 
   // In a real app, this would fetch data from an API
   useEffect(() => {
     // Mock data for demonstration
-    setStats({
-      totalTenants: 5,
-      pendingPayments: 2,
-      totalRevenue: 25000,
-    });
   }, []);
 
   const StatCard = ({ title, value, action }) => (
@@ -59,7 +53,7 @@ export default function Dashboard() {
         <Grid item xs={12} md={4}>
           <StatCard
             title="Total Tenants"
-            value={stats.totalTenants}
+            value={tenants.length}
             action={{
               text: 'View Tenants',
               onClick: () => navigate('/tenants'),
@@ -69,7 +63,7 @@ export default function Dashboard() {
         <Grid item xs={12} md={4}>
           <StatCard
             title="Pending Payments"
-            value={stats.pendingPayments}
+            value={getPendingPayments()}
             action={{
               text: 'View Payments',
               onClick: () => navigate('/payments'),
@@ -79,7 +73,11 @@ export default function Dashboard() {
         <Grid item xs={12} md={4}>
           <StatCard
             title="Total Revenue"
-            value={`$${stats.totalRevenue.toLocaleString()}`}
+            value={`$${getTotalRevenue().toLocaleString()}`}
+            action={{
+              text: 'View Payments',
+              onClick: () => navigate('/payments'),
+            }}
           />
         </Grid>
       </Grid>
