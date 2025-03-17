@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -8,20 +8,25 @@ import {
   Grid,
   TextField,
   Typography,
+  MenuItem,
 } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers';
-import { TenantsContext } from './Tenants';
 
 export default function AddTenant() {
   const navigate = useNavigate();
-  const { addTenant } = useContext(TenantsContext);
   const [formData, setFormData] = useState({
     name: '',
-    unit: '',
+    location: '',
     rentAmount: '',
-    leaseStart: null,
-    leaseEnd: null,
+    notes: '',
   });
+
+  const locations = [
+    'Arepally Chicken Center',
+    'Gandhi Nagar',
+    'Court',
+    'Watch Tower Center',
+    'Arepally House Rents',
+  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,44 +38,50 @@ export default function AddTenant() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    addTenant({
-      ...formData,
-      leaseStart: formData.leaseStart?.toISOString().split('T')[0],
-      leaseEnd: formData.leaseEnd?.toISOString().split('T')[0],
-    });
+    // In a real app, this would make an API call to save the tenant
+    console.log('Saving property:', formData);
     navigate('/tenants');
   };
 
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        Add New Tenant
+        Add New Property
       </Typography>
       <Card>
         <CardContent>
           <form onSubmit={handleSubmit}>
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Tenant Name"
+                  label="Property Name"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
                   required
+                  helperText="Enter a descriptive name for the property"
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Unit Number"
-                  name="unit"
-                  value={formData.unit}
+                  select
+                  label="Location"
+                  name="location"
+                  value={formData.location}
                   onChange={handleChange}
                   required
-                />
+                  helperText="Select the area where this property is located"
+                >
+                  {locations.map((location) => (
+                    <MenuItem key={location} value={location}>
+                      {location}
+                    </MenuItem>
+                  ))}
+                </TextField>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12}>
                 <TextField
                   fullWidth
                   label="Rent Amount"
@@ -79,29 +90,22 @@ export default function AddTenant() {
                   value={formData.rentAmount}
                   onChange={handleChange}
                   InputProps={{
-                    startAdornment: '$',
+                    startAdornment: '₹',
                   }}
                   required
+                  helperText="Enter the monthly rent amount"
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
-                <DatePicker
-                  label="Lease Start Date"
-                  value={formData.leaseStart}
-                  onChange={(newValue) =>
-                    setFormData((prev) => ({ ...prev, leaseStart: newValue }))
-                  }
-                  slotProps={{ textField: { fullWidth: true, required: true } }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <DatePicker
-                  label="Lease End Date"
-                  value={formData.leaseEnd}
-                  onChange={(newValue) =>
-                    setFormData((prev) => ({ ...prev, leaseEnd: newValue }))
-                  }
-                  slotProps={{ textField: { fullWidth: true, required: true } }}
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Notes"
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleChange}
+                  multiline
+                  rows={3}
+                  helperText="Add any additional information about the property or tenants"
                 />
               </Grid>
               <Grid item xs={12}>
@@ -117,7 +121,7 @@ export default function AddTenant() {
                     variant="contained"
                     color="primary"
                   >
-                    Save Tenant
+                    Save Property
                   </Button>
                 </Box>
               </Grid>

@@ -1,16 +1,17 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import CssBaseline from '@mui/material/CssBaseline';
+
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
-import Tenants, { TenantsProvider } from './pages/Tenants';
+import Tenants from './pages/Tenants';
 import AddTenant from './pages/AddTenant';
 import TenantDetails from './pages/TenantDetails';
 import Payments from './pages/Payments';
-import { PaymentsProvider } from './contexts/PaymentsContext';
 
+// Create a theme instance
 const theme = createTheme({
   palette: {
     mode: 'light',
@@ -47,24 +48,12 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: '"Inter", "Helvetica", "Arial", sans-serif',
-    h1: {
-      fontWeight: 600,
-    },
-    h2: {
-      fontWeight: 600,
-    },
-    h3: {
-      fontWeight: 600,
-    },
-    h4: {
-      fontWeight: 600,
-    },
-    h5: {
-      fontWeight: 600,
-    },
-    h6: {
-      fontWeight: 600,
-    },
+    h1: { fontWeight: 600 },
+    h2: { fontWeight: 600 },
+    h3: { fontWeight: 600 },
+    h4: { fontWeight: 600 },
+    h5: { fontWeight: 600 },
+    h6: { fontWeight: 600 },
   },
   shape: {
     borderRadius: 8,
@@ -112,29 +101,23 @@ const theme = createTheme({
   },
 });
 
-function App() {
+export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <LocalizationProvider dateAdapter={AdapterDateFns}>
         <CssBaseline />
-        <TenantsProvider>
-          <PaymentsProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Layout />}>
-                  <Route index element={<Dashboard />} />
-                  <Route path="tenants" element={<Tenants />} />
-                  <Route path="tenants/add" element={<AddTenant />} />
-                  <Route path="tenants/:id" element={<TenantDetails />} />
-                  <Route path="payments" element={<Payments />} />
-                </Route>
-              </Routes>
-            </BrowserRouter>
-          </PaymentsProvider>
-        </TenantsProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="tenants" element={<Tenants />} />
+              <Route path="tenants/add" element={<AddTenant />} />
+              <Route path="tenants/:id" element={<TenantDetails />} />
+              <Route path="payments" element={<Payments />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
       </LocalizationProvider>
     </ThemeProvider>
   );
 }
-
-export default App;

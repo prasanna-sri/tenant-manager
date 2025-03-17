@@ -2,15 +2,50 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background-color: #f8fafc;
 }
 
 #root {
   width: 100%;
   height: 100vh;
+}
+
+/* Table Styles */
+.MuiTableHead-root .MuiTableCell-root {
+  font-weight: 600;
+  background-color: #f8fafc;
+}
+
+.MuiTableBody-root .MuiTableRow-root:hover {
+  background-color: #f1f5f9;
+}
+
+/* Card Styles */
+.MuiCard-root {
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.MuiCard-root:hover {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* Button Styles */
+.MuiButton-root {
+  text-transform: none;
+  font-weight: 500;
+}
+
+/* Chip Styles */
+.MuiChip-root {
+  font-weight: 500;
 }

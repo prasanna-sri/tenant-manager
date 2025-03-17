@@ -3,24 +3,23 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
   Box,
+  CssBaseline,
   Drawer,
   IconButton,
   List,
   ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   Toolbar,
   Typography,
-  Avatar,
-  Divider,
   useTheme,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
-  People as PeopleIcon,
+  Business as BusinessIcon,
   Payment as PaymentIcon,
-  Home as HomeIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 280;
@@ -33,29 +32,30 @@ export default function Layout() {
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-    { text: 'Tenants', icon: <PeopleIcon />, path: '/tenants' },
+    { text: 'Properties', icon: <BusinessIcon />, path: '/tenants' },
     { text: 'Payments', icon: <PaymentIcon />, path: '/payments' },
   ];
 
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
   const drawer = (
     <div>
-      <Box 
-        sx={{ 
-          p: 2, 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: 2,
-          backgroundColor: theme.palette.primary.main,
-          color: 'white',
-          minHeight: 64,
-        }}
-      >
-        <HomeIcon sx={{ fontSize: 32 }} />
+      <Box sx={{ 
+        p: 2, 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: 2,
+        backgroundColor: theme.palette.primary.main,
+        color: 'white',
+        minHeight: 64,
+      }}>
+        <BusinessIcon sx={{ fontSize: 32 }} />
         <Typography variant="h6" sx={{ fontWeight: 600 }}>
           Rent Tracker
         </Typography>
       </Box>
-      <Divider />
       <List sx={{ p: 2 }}>
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path || 
@@ -63,36 +63,39 @@ export default function Layout() {
           
           return (
             <ListItem
-              button
               key={item.text}
-              onClick={() => {
-                navigate(item.path);
-                setMobileOpen(false);
-              }}
-              sx={{
-                borderRadius: 1,
-                mb: 1,
-                backgroundColor: isActive ? theme.palette.primary.light : 'transparent',
-                color: isActive ? theme.palette.primary.contrastText : theme.palette.text.primary,
-                '&:hover': {
-                  backgroundColor: isActive 
-                    ? theme.palette.primary.light 
-                    : theme.palette.action.hover,
-                },
-              }}
+              disablePadding
+              sx={{ mb: 1 }}
             >
-              <ListItemIcon sx={{ 
-                color: isActive ? theme.palette.primary.contrastText : theme.palette.primary.main,
-                minWidth: 40,
-              }}>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText 
-                primary={item.text} 
-                primaryTypographyProps={{
-                  fontWeight: isActive ? 600 : 400,
+              <ListItemButton
+                onClick={() => {
+                  navigate(item.path);
+                  setMobileOpen(false);
                 }}
-              />
+                sx={{
+                  borderRadius: 1,
+                  backgroundColor: isActive ? `${theme.palette.primary.main}15` : 'transparent',
+                  color: isActive ? theme.palette.primary.main : theme.palette.text.primary,
+                  '&:hover': {
+                    backgroundColor: isActive 
+                      ? `${theme.palette.primary.main}25`
+                      : theme.palette.action.hover,
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ 
+                  color: isActive ? theme.palette.primary.main : theme.palette.text.secondary,
+                  minWidth: 40,
+                }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText 
+                  primary={item.text} 
+                  primaryTypographyProps={{
+                    fontWeight: isActive ? 600 : 400,
+                  }}
+                />
+              </ListItemButton>
             </ListItem>
           );
         })}
@@ -102,12 +105,14 @@ export default function Layout() {
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: theme.palette.background.default }}>
+      <CssBaseline />
       <AppBar
         position="fixed"
         elevation={0}
         sx={{ 
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          backgroundColor: 'white',
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          ml: { sm: `${drawerWidth}px` },
+          backgroundColor: theme.palette.background.paper,
           borderBottom: '1px solid',
           borderColor: 'divider',
         }}
@@ -116,22 +121,11 @@ export default function Layout() {
           <IconButton
             color="primary"
             edge="start"
-            onClick={() => setMobileOpen(!mobileOpen)}
+            onClick={handleDrawerToggle}
             sx={{ mr: 2, display: { sm: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
-          <Box sx={{ flexGrow: 1 }} />
-          <Avatar 
-            sx={{ 
-              width: 32, 
-              height: 32,
-              bgcolor: theme.palette.primary.main,
-              cursor: 'pointer',
-            }}
-          >
-            A
-          </Avatar>
         </Toolbar>
       </AppBar>
       <Box
@@ -141,16 +135,17 @@ export default function Layout() {
         <Drawer
           variant="temporary"
           open={mobileOpen}
-          onClose={() => setMobileOpen(false)}
+          onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true,
+            keepMounted: true, // Better open performance on mobile.
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
               width: drawerWidth,
-              borderRight: 'none',
+              backgroundColor: theme.palette.background.paper,
+              border: 'none',
             },
           }}
         >
@@ -163,7 +158,8 @@ export default function Layout() {
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
               width: drawerWidth,
-              borderRight: 'none',
+              backgroundColor: theme.palette.background.paper,
+              border: 'none',
               boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
             },
           }}
