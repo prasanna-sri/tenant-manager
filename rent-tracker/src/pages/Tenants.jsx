@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
+  Box,
+  Typography,
   Button,
   Paper,
   Table,
@@ -9,14 +11,14 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Typography,
-  IconButton,
   Chip,
-  Box,
   useTheme,
+  TextField,
+  MenuItem,
 } from '@mui/material';
 import { Add as AddIcon, Visibility as ViewIcon } from '@mui/icons-material';
 
+// Initial tenant data
 const initialTenants = [
   // Arepally Chicken Center
   {
@@ -39,21 +41,21 @@ const initialTenants = [
     name: 'Gandhi Nagar Property 2',
     location: 'Gandhi Nagar',
     rentAmount: 8000,
-    notes: '18 tenants',
+    notes: '18th due date',
   },
   {
     id: 4,
     name: 'Gandhi Nagar Property 3',
     location: 'Gandhi Nagar',
     rentAmount: 5500,
-    notes: 'Verification needed',
+    notes: '',
   },
   {
     id: 5,
     name: 'Gandhi Nagar Property 4',
     location: 'Gandhi Nagar',
     rentAmount: 10000,
-    notes: '1 tenant',
+    notes: '1st due date',
   },
   // Court Area
   {
@@ -61,7 +63,7 @@ const initialTenants = [
     name: 'Court Property 1',
     location: 'Court',
     rentAmount: 18500,
-    notes: '5 tenants',
+    notes: '5th due date',
   },
   {
     id: 7,
@@ -76,7 +78,7 @@ const initialTenants = [
     name: 'Watch Tower Main',
     location: 'Watch Tower Center',
     rentAmount: 14000,
-    notes: '10 tenants',
+    notes: '10th due date',
   },
   {
     id: 9,
@@ -132,46 +134,107 @@ const initialTenants = [
   },
 ];
 
+const locations = [
+  'Arepally Chicken Center',
+  'Gandhi Nagar',
+  'Court',
+  'Watch Tower Center',
+  'Arepally House Rents',
+];
+
 export default function Tenants() {
   const [tenants, setTenants] = useState([]);
+  const [filterLocation, setFilterLocation] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
 
   useEffect(() => {
-    setTenants(initialTenants);
-  }, []);
+    // Load tenants from localStorage or use initial data
+    const savedTenants = JSON.parse(localStorage.getItem('tenants'));
+    if (savedTenants) {
+      setTenants(savedTenants);
+    } else {
+      setTenants(initialTenants);
+      // Save initial data to localStorage
+      localStorage.setItem('tenants', JSON.stringify(initialTenants));
+    }
+
+    // Set initial filter from navigation state
+    if (location.state?.filterLocation) {
+      setFilterLocation(location.state.filterLocation);
+      // Clear the navigation state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state?.filterLocation]);
+
+  const filteredTenants = tenants.filter(tenant => 
+    !filterLocation || tenant.location === filterLocation
+  );
+
+  const totalRent = filteredTenants.reduce((sum, tenant) => sum + tenant.rentAmount, 0);
 
   return (
     <Box>
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        mb: 3 
-      }}>
-        <Box>
-          <Typography variant="h4" gutterBottom fontWeight="600">
-            Properties
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Manage your properties and tenants
-          </Typography>
+      <Box sx={{ mb: 4 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'flex-start',
+          mb: 3,
+        }}>
+          <Box>
+            <Typography variant="h4" gutterBottom fontWeight="600">
+              Properties
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Manage your properties and tenants
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => navigate('/tenants/add')}
+            sx={{
+              px: 3,
+              py: 1,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontSize: '1rem',
+            }}
+          >
+            Add Property
+          </Button>
         </Box>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={() => navigate('/tenants/add')}
-          sx={{
-            px: 3,
-            py: 1,
-            borderRadius: 2,
-            textTransform: 'none',
-            fontSize: '1rem',
-          }}
-        >
-          Add Property
-        </Button>
+
+        <Box sx={{ 
+          display: 'flex', 
+          gap: 2, 
+          alignItems: 'center',
+          mb: 3,
+        }}>
+          <TextField
+            select
+            label="Filter by Location"
+            value={filterLocation}
+            onChange={(e) => setFilterLocation(e.target.value)}
+            sx={{ width: 240 }}
+            size="small"
+          >
+            <MenuItem value="">All Locations</MenuItem>
+            {locations.map((loc) => (
+              <MenuItem key={loc} value={loc}>
+                {loc}
+              </MenuItem>
+            ))}
+          </TextField>
+          {filterLocation && (
+            <Typography variant="body1" color="text.secondary">
+              Total Rent: <Typography component="span" fontWeight="600" color="primary">₹{totalRent.toLocaleString()}</Typography>
+            </Typography>
+          )}
+        </Box>
       </Box>
 
       <TableContainer 
@@ -190,12 +253,12 @@ export default function Tenants() {
               <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
               <TableCell sx={{ fontWeight: 600 }}>Location</TableCell>
               <TableCell sx={{ fontWeight: 600 }} align="right">Rent Amount (₹)</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Notes</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Due Date</TableCell>
               <TableCell sx={{ fontWeight: 600 }} align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {tenants.map((tenant) => (
+            {filteredTenants.map((tenant) => (
               <TableRow key={tenant.id}>
                 <TableCell>
                   <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
