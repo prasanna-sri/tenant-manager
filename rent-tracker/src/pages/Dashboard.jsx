@@ -99,10 +99,9 @@ export default function Dashboard() {
 
   const cardStyle = {
     cursor: 'pointer',
-    transition: 'transform 0.2s, box-shadow 0.2s',
+    transition: 'transform 0.2s',
     '&:hover': {
-      transform: 'translateY(-4px)',
-      boxShadow: theme.shadows[4],
+      transform: 'scale(1.02)',
     },
   };
 
@@ -218,11 +217,9 @@ export default function Dashboard() {
         </Grid>
       </Grid>
 
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" gutterBottom fontWeight="600">
-          Rent by Location
-        </Typography>
-      </Box>
+      <Typography variant="h5" gutterBottom fontWeight="600" sx={{ mb: 3 }}>
+        Rent by Location
+      </Typography>
 
       <Grid container spacing={3}>
         {locations.map((location) => (

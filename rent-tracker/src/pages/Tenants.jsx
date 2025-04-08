@@ -15,8 +15,18 @@ import {
   useTheme,
   TextField,
   MenuItem,
+  IconButton,
+  Stack,
+  Tooltip,
 } from '@mui/material';
-import { Add as AddIcon, Visibility as ViewIcon } from '@mui/icons-material';
+import { 
+  Add as AddIcon, 
+  Visibility as ViewIcon,
+  Check as CheckIcon,
+  Money as MoneyIcon,
+  MoneyOff as MoneyOffIcon,
+  AttachMoney as AttachMoneyIcon,
+} from '@mui/icons-material';
 
 // Initial tenant data
 const initialTenants = [
@@ -145,6 +155,7 @@ const locations = [
 export default function Tenants() {
   const [tenants, setTenants] = useState([]);
   const [filterLocation, setFilterLocation] = useState('');
+  const [payments, setPayments] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -160,12 +171,27 @@ export default function Tenants() {
       localStorage.setItem('tenants', JSON.stringify(initialTenants));
     }
 
+    // Load payments from localStorage
+    const savedPayments = JSON.parse(localStorage.getItem('payments')) || [];
+    setPayments(savedPayments);
+
     // Set initial filter from navigation state
     if (location.state?.filterLocation) {
       setFilterLocation(location.state.filterLocation);
       // Clear the navigation state
       window.history.replaceState({}, document.title);
     }
+
+    // Listen for localStorage changes
+    const handleStorage = (event) => {
+      if (event.key === 'payments') {
+        const updatedPayments = JSON.parse(event.newValue) || [];
+        setPayments(updatedPayments);
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, [location.state?.filterLocation]);
 
   const filteredTenants = tenants.filter(tenant => 
@@ -173,6 +199,48 @@ export default function Tenants() {
   );
 
   const totalRent = filteredTenants.reduce((sum, tenant) => sum + tenant.rentAmount, 0);
+
+  const isPaymentReceived = (propertyName) => {
+    const payment = payments.find(p => p.propertyName === propertyName);
+    return payment?.status === 'received';
+  };
+
+  const handleMarkAsReceived = (tenant) => {
+    // Get existing payments
+    let updatedPayments = [...payments];
+    
+    // Check if payment already exists
+    const existingPayment = updatedPayments.find(p => p.propertyName === tenant.name);
+    if (!existingPayment || existingPayment.status !== 'received') {
+      updatedPayments.push({
+        propertyName: tenant.name,
+        status: 'received',
+        timestamp: new Date().toISOString(),
+      });
+
+      // Save updated payments
+      localStorage.setItem('payments', JSON.stringify(updatedPayments));
+      setPayments(updatedPayments); // Update local state
+
+      // Add a temporary success message
+      const successMessage = document.createElement('div');
+      successMessage.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${theme.palette.success.main};
+        color: white;
+        padding: 8px 16px;
+        border-radius: 4px;
+        z-index: 1000;
+      `;
+      successMessage.textContent = 'Payment marked as received!';
+      document.body.appendChild(successMessage);
+      setTimeout(() => {
+        successMessage.remove();
+      }, 2000);
+    }
+  };
 
   return (
     <Box>
@@ -199,110 +267,96 @@ export default function Tenants() {
             sx={{
               px: 3,
               py: 1,
-              borderRadius: 2,
-              textTransform: 'none',
-              fontSize: '1rem',
             }}
           >
             Add Property
           </Button>
         </Box>
 
-        <Box sx={{ 
-          display: 'flex', 
-          gap: 2, 
-          alignItems: 'center',
-          mb: 3,
-        }}>
-          <TextField
-            select
-            label="Filter by Location"
-            value={filterLocation}
-            onChange={(e) => setFilterLocation(e.target.value)}
-            sx={{ width: 240 }}
-            size="small"
-          >
-            <MenuItem value="">All Locations</MenuItem>
-            {locations.map((loc) => (
-              <MenuItem key={loc} value={loc}>
-                {loc}
-              </MenuItem>
-            ))}
-          </TextField>
-          {filterLocation && (
-            <Typography variant="body1" color="text.secondary">
-              Total Rent: <Typography component="span" fontWeight="600" color="primary">₹{totalRent.toLocaleString()}</Typography>
-            </Typography>
-          )}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Total Monthly Rent: ₹{totalRent.toLocaleString()}
+          </Typography>
         </Box>
       </Box>
 
-      <TableContainer 
-        component={Paper}
-        sx={{ 
-          borderRadius: 2,
-          overflow: 'hidden',
-          '& .MuiTableRow-root:hover': {
-            backgroundColor: theme.palette.action.hover,
-          },
-        }}
-      >
+      <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Location</TableCell>
-              <TableCell sx={{ fontWeight: 600 }} align="right">Rent Amount (₹)</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Due Date</TableCell>
-              <TableCell sx={{ fontWeight: 600 }} align="right">Actions</TableCell>
+              <TableCell>Property Name</TableCell>
+              <TableCell>Location</TableCell>
+              <TableCell align="right">Rent Amount</TableCell>
+              <TableCell>Notes</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredTenants.map((tenant) => (
-              <TableRow key={tenant.id}>
+              <TableRow
+                key={tenant.id}
+                sx={{
+                  '&:hover': {
+                    backgroundColor: theme.palette.action.hover,
+                    opacity: 0.95,
+                    transition: 'all 0.2s ease',
+                  },
+                  transition: 'all 0.2s ease',
+                  backgroundColor: isPaymentReceived(tenant.name) 
+                    ? theme.palette.success.light 
+                    : 'transparent',
+                }}
+              >
+                <TableCell>{tenant.name}</TableCell>
+                <TableCell>{tenant.location}</TableCell>
+                <TableCell align="right">₹{tenant.rentAmount.toLocaleString()}</TableCell>
                 <TableCell>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
-                    {tenant.name}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    label={tenant.location}
-                    size="small"
-                    sx={{ 
-                      backgroundColor: `${theme.palette.primary.main}15`,
-                      color: theme.palette.primary.main,
-                      fontWeight: 500,
-                    }}
-                  />
-                </TableCell>
-                <TableCell align="right">
-                  <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
-                    ₹{tenant.rentAmount.toLocaleString()}
-                  </Typography>
+                  {tenant.notes && <Typography color="text.secondary">{tenant.notes}</Typography>}
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2" color="text.secondary">
-                    {tenant.notes}
-                  </Typography>
-                </TableCell>
-                <TableCell align="right">
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => navigate(`/tenants/${tenant.id}`)}
-                    startIcon={<ViewIcon />}
-                    sx={{
-                      borderColor: theme.palette.primary.main,
-                      color: theme.palette.primary.main,
-                      '&:hover': {
-                        borderColor: theme.palette.primary.main,
-                        backgroundColor: `${theme.palette.primary.main}10`,
-                      },
-                    }}
-                  >
-                    View Details
-                  </Button>
+                  <Stack direction="row" spacing={1}>
+                    <Tooltip title={isPaymentReceived(tenant.name) ? 'Payment Received' : 'Mark as Received'}>
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMarkAsReceived(tenant);
+                        }}
+                        size="large"
+                        sx={{
+                          backgroundColor: isPaymentReceived(tenant.name) 
+                            ? theme.palette.success.main 
+                            : 'transparent',
+                          color: isPaymentReceived(tenant.name) 
+                            ? theme.palette.common.white 
+                            : theme.palette.success.main,
+                          '&:hover': {
+                            backgroundColor: isPaymentReceived(tenant.name) 
+                              ? theme.palette.success.dark 
+                              : theme.palette.success.light,
+                          },
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        {isPaymentReceived(tenant.name) ? <AttachMoneyIcon /> : <MoneyOffIcon />}
+                      </IconButton>
+                    </Tooltip>
+                    <IconButton
+                      color="primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/tenants/${tenant.id}`);
+                      }}
+                      size="large"
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: theme.palette.primary.light,
+                        },
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      <ViewIcon />
+                    </IconButton>
+                  </Stack>
                 </TableCell>
               </TableRow>
             ))}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
@@ -20,7 +20,10 @@ import {
   Dashboard as DashboardIcon,
   Business as BusinessIcon,
   Payment as PaymentIcon,
+  DarkMode as DarkModeIcon,
+  LightMode as LightModeIcon,
 } from '@mui/icons-material';
+import { ColorModeButton } from '../App';
 
 const drawerWidth = 280;
 
@@ -48,84 +51,68 @@ export default function Layout() {
         alignItems: 'center', 
         gap: 2,
         backgroundColor: theme.palette.primary.main,
-        color: 'white',
-        minHeight: 64,
+        color: theme.palette.primary.contrastText,
       }}>
-        <BusinessIcon sx={{ fontSize: 32 }} />
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+        <Typography variant="h6" noWrap component="div">
           Rent Tracker
         </Typography>
       </Box>
-      <List sx={{ p: 2 }}>
-        {menuItems.map((item) => {
-          const isActive = location.pathname === item.path || 
-            (item.path !== '/' && location.pathname.startsWith(item.path));
-          
-          return (
-            <ListItem
-              key={item.text}
-              disablePadding
-              sx={{ mb: 1 }}
+      <List>
+        {menuItems.map((item) => (
+          <ListItem 
+            key={item.text} 
+            disablePadding
+            sx={{
+              '&.Mui-selected': {
+                backgroundColor: theme.palette.primary.light,
+              },
+            }}
+          >
+            <ListItemButton
+              selected={location.pathname === item.path}
+              onClick={() => navigate(item.path)}
+              sx={{
+                '&.Mui-selected': {
+                  backgroundColor: theme.palette.primary.light,
+                },
+              }}
             >
-              <ListItemButton
-                onClick={() => {
-                  navigate(item.path);
-                  setMobileOpen(false);
-                }}
-                sx={{
-                  borderRadius: 1,
-                  backgroundColor: isActive ? `${theme.palette.primary.main}15` : 'transparent',
-                  color: isActive ? theme.palette.primary.main : theme.palette.text.primary,
-                  '&:hover': {
-                    backgroundColor: isActive 
-                      ? `${theme.palette.primary.main}25`
-                      : theme.palette.action.hover,
-                  },
-                }}
-              >
-                <ListItemIcon sx={{ 
-                  color: isActive ? theme.palette.primary.main : theme.palette.text.secondary,
-                  minWidth: 40,
-                }}>
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText 
-                  primary={item.text} 
-                  primaryTypographyProps={{
-                    fontWeight: isActive ? 600 : 400,
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          );
-        })}
+              <ListItemIcon sx={{ color: theme.palette.primary.contrastText }}>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
+          </ListItem>
+        ))}
       </List>
     </div>
   );
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: theme.palette.background.default }}>
+    <Box sx={{ display: 'flex' }}>
       <CssBaseline />
       <AppBar
         position="fixed"
-        elevation={0}
-        sx={{ 
+        sx={{
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
-          backgroundColor: theme.palette.background.paper,
-          borderBottom: '1px solid',
-          borderColor: 'divider',
+          backgroundColor: theme.palette.primary.main,
+          color: theme.palette.primary.contrastText,
         }}
       >
         <Toolbar>
           <IconButton
-            color="primary"
+            color="inherit"
+            aria-label="open drawer"
             edge="start"
             onClick={handleDrawerToggle}
             sx={{ mr: 2, display: { sm: 'none' } }}
           >
-            <MenuIcon />
+            <MenuIcon sx={{ color: theme.palette.primary.contrastText }} />
           </IconButton>
+          <Typography variant="h6" noWrap component="div">
+            Dashboard
+          </Typography>
+          <Box sx={{ flexGrow: 1 }} />
+          <ColorModeButton />
         </Toolbar>
       </AppBar>
       <Box
@@ -137,15 +124,13 @@ export default function Layout() {
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
+            keepMounted: true,
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
               width: drawerWidth,
-              backgroundColor: theme.palette.background.paper,
-              border: 'none',
             },
           }}
         >
@@ -158,9 +143,6 @@ export default function Layout() {
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
               width: drawerWidth,
-              backgroundColor: theme.palette.background.paper,
-              border: 'none',
-              boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
             },
           }}
           open
@@ -172,8 +154,9 @@ export default function Layout() {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 4,
+          p: 3,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
+          bgcolor: theme.palette.background.default,
         }}
       >
         <Toolbar />
